@@ -1,0 +1,54 @@
+﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject NavigationManager NavigationManager
+
+<PageTitle>WebClient</PageTitle>
+
+<div class="page">
+    <main>
+        <div class="top-row px-4">
+            @if (IsAuthorized)
+            {
+                <button @onclick="Logout">Logout</button>
+                @if (IsAdmin)
+                {
+                    <button @onclick="CreateUser">Create User</button>
+                }
+            }
+        </div>
+
+        <article class="content px-4">
+            @Body
+        </article>
+    </main>
+</div>
+
+@code {
+    private bool IsAuthorized;
+    private bool IsAdmin;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var authorizedState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+        if (authorizedState.User.Identity == null)
+        {
+
+        }
+        else
+        {
+            IsAuthorized = authorizedState.User.Identity.IsAuthenticated;
+        }
+        IsAdmin = authorizedState.User.IsInRole("Admin");
+    }
+
+    private void Logout()
+    {
+        NavigationManager.NavigateTo("/Logout", true);
+    }
+
+    private void CreateUser()
+    {
+        // Logic for creating user
+    }
+}

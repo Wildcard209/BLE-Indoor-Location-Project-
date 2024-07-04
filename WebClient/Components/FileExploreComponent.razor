@@ -1,0 +1,574 @@
+﻿<div class="row">
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">HTML</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in HtmlList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleHtmlCheckbox(e, item))"> <a href="@HostName/Mobile/Html?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadHtmlModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteHtmlFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">CSS</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in CssList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleCssCheckbox(e, item))"> <a href="@HostName/Mobile/Css?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadCssModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteCssFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">JavaScript</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in JsList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleJavascriptCheckbox(e, item))"> <a href="@HostName/Mobile/JavaScript?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadJavascriptModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteJavascriptFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">Map</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in MapList)
+                {
+                    <li class="list-group-item"><a href="@HostName/Mobile/Map" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadMapModal">Update</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">Image</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in ImageList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleImageCheckbox(e, item))"> <a href="@HostName/Mobile/Image?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadImageModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteImageFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">Video</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in VideoList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleVideoCheckbox(e, item))"> <a href="@HostName/Mobile/Video?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadVideoModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteVideoFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-sm">
+        <div class="card">
+            <div class="card-header">Audio</div>
+            <ul class="list-group list-group-flush">
+                @foreach (string item in AudioList)
+                {
+                    <li class="list-group-item"><input type="checkbox" @onchange="@(e => ToggleAudioCheckbox(e, item))"> <a href="@HostName/Mobile/Audio?fileName=@item" target="_blank">@item</a></li>
+                }
+            </ul>
+            <div class="card-footer">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadAudioModal">Upload</button>
+                <button class="btn btn-danger" @onclick="DeleteAudioFileAsync">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="uploadMapModal" tabindex="-1" aria-labelledby="uploadMapModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".png" />
+                        <br/>
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadMapFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadMapModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadImageModal" tabindex="-1" aria-labelledby="uploadImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".png" />
+                        <br/>
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadImageFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadImageModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadHtmlModal" tabindex="-1" aria-labelledby="uploadHtmlModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".html" />
+                        <br />
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadHtmlFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadHtmlModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadCssModal" tabindex="-1" aria-labelledby="uploadCssModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".css" />
+                        <br />
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadCssFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadCssModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadJavascriptModal" tabindex="-1" aria-labelledby="uploadJavascriptModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".js" />
+                        <br />
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadJavascriptFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadJavascriptModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<div class="modal fade" id="uploadVideoModal" tabindex="-1" aria-labelledby="uploadVideoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".mp4" />
+                        <br />
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadVideoFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadVideoModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="uploadAudioModal" tabindex="-1" aria-labelledby="uploadAudioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="uploadModalLabel">Upload File</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="fileInput" class="form-label">Choose file:</label>
+                        <InputFile OnChange="HandleFileChange" accept=".mp3" />
+                        <br />
+                        <span for="fileNameInput" class="form-label">File name:<input type="text" @bind="fileName" /></span>
+                        <br />
+                        <span>@Message</span>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="UploadAudioFileAsync">Upload</button>
+                <button type="button" class="btn btn-secondary" id="uploadAudioModalClose" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+@code {
+    [Parameter]
+    public List<string> HtmlList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> CssList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> JsList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> MapList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> ImageList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> VideoList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> AudioList { get; set; } = new List<string>();
+    [Parameter]
+    public string? Message { get; set; }
+    [Parameter]
+    public string? HostName { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?>? OnButtonUploadMapFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadImageFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadHtmlFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadCssFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadJavascriptFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadVideoFileAsync { get; set; }
+    [Parameter]
+    public Action<IBrowserFile?, string?>? OnButtonUploadAudioFileAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtondDeleteImageFilesAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtondDeleteHtmlFilesAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtonDeleteCssFilesAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtonDeleteJavascriptFilesAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtonDeleteVideoFilesAsync { get; set; }
+    [Parameter]
+    public Action<List<string>?>? OnButtonDeleteAudioFilesAsync { get; set; }
+
+    private List<string> htmlRemoveList = new List<string>();
+    private List<string> cssRemoveList = new List<string>();
+    private List<string> jsRemoveList = new List<string>();
+    private List<string> imageRemoveList = new List<string>();
+    private List<string> videoRemoveList = new List<string>();
+    private List<string> audioRemoveList = new List<string>();
+
+    private IBrowserFile? selectedFile;
+
+    private string fileName { get; set; } = "";
+
+    private void HandleFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+    }
+
+    private void UploadMapFileAsync()
+    {
+        if(OnButtonUploadMapFileAsync == null)
+        {
+            return;   
+        }
+        OnButtonUploadMapFileAsync.Invoke(selectedFile);
+    }
+
+    private void UploadImageFileAsync()
+    {
+        if (OnButtonUploadImageFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadImageFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void UploadHtmlFileAsync()
+    {
+        if (OnButtonUploadHtmlFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadHtmlFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void UploadCssFileAsync()
+    {
+        if (OnButtonUploadCssFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadCssFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void UploadJavascriptFileAsync()
+    {
+        if (OnButtonUploadJavascriptFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadJavascriptFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void UploadVideoFileAsync()
+    {
+        if (OnButtonUploadVideoFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadVideoFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void UploadAudioFileAsync()
+    {
+        if (OnButtonUploadAudioFileAsync == null)
+        {
+            return;
+        }
+        OnButtonUploadAudioFileAsync.Invoke(selectedFile, fileName);
+        fileName = "";
+    }
+
+    private void DeleteImageFileAsync()
+    {
+        if (OnButtondDeleteImageFilesAsync == null)
+        {
+            return;
+        }
+        OnButtondDeleteImageFilesAsync.Invoke(imageRemoveList);
+        imageRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    private void DeleteHtmlFileAsync()
+    {
+        if (OnButtondDeleteHtmlFilesAsync == null)
+        {
+            return;
+        }
+        OnButtondDeleteHtmlFilesAsync.Invoke(htmlRemoveList);
+        htmlRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    private void DeleteCssFileAsync()
+    {
+        if (OnButtonDeleteCssFilesAsync == null)
+        {
+            return;
+        }
+        OnButtonDeleteCssFilesAsync.Invoke(cssRemoveList);
+        cssRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    private void DeleteJavascriptFileAsync()
+    {
+        if (OnButtonDeleteJavascriptFilesAsync == null)
+        {
+            return;
+        }
+        OnButtonDeleteJavascriptFilesAsync.Invoke(jsRemoveList);
+        jsRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    private void DeleteVideoFileAsync()
+    {
+        if (OnButtonDeleteVideoFilesAsync == null)
+        {
+            return;
+        }
+        OnButtonDeleteVideoFilesAsync.Invoke(videoRemoveList);
+        videoRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    private void DeleteAudioFileAsync()
+    {
+        if (OnButtonDeleteAudioFilesAsync == null)
+        {
+            return;
+        }
+        OnButtonDeleteAudioFilesAsync.Invoke(audioRemoveList);
+        audioRemoveList = new List<string>();
+        ResetCheckboxes();
+    }
+
+    void ToggleHtmlCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            htmlRemoveList.Add(item);
+        }
+        else
+        {
+            htmlRemoveList.Remove(item);
+        }
+    }
+
+    void ToggleCssCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            cssRemoveList.Add(item);
+        }
+        else
+        {
+            cssRemoveList.Remove(item);
+        }
+    }
+
+    void ToggleJavascriptCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            jsRemoveList.Add(item);
+        }
+        else
+        {
+            jsRemoveList.Remove(item);
+        }
+    }
+
+    void ToggleImageCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            imageRemoveList.Add(item);
+        }
+        else
+        {
+            imageRemoveList.Remove(item);
+        }
+    }
+
+    void ToggleVideoCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            videoRemoveList.Add(item);
+        }
+        else
+        {
+            videoRemoveList.Remove(item);
+        }
+    }
+
+    void ToggleAudioCheckbox(ChangeEventArgs e, string item)
+    {
+        if ((bool)e.Value)
+        {
+            audioRemoveList.Add(item);
+        }
+        else
+        {
+            audioRemoveList.Remove(item);
+        }
+    }
+    private void ResetCheckboxes()
+    {
+        HtmlList.Clear();
+        CssList.Clear();
+        JsList.Clear();
+        ImageList.Clear();
+        VideoList.Clear();
+        AudioList.Clear();
+    }
+}

@@ -1,0 +1,18 @@
+﻿@if (IsLoading)
+{
+
+    <div class="overlay">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+}
+else
+{
+    <div></div>
+}
+
+@code {
+    [Parameter]
+    public bool IsLoading { get; set; }
+}

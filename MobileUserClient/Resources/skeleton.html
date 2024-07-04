@@ -1,0 +1,55 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title>Sample HTML</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <script>
+        function updateValue(value) {
+            document.getElementById('value').innerText = value;
+        }
+    </script>
+    <link rel="stylesheet" href="{apiUrl}/mobile/css?fileName={cssName}">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+</head>
+<body>
+    <div id="map" style="height:{hight}px; "></div>
+    <div id="value">Initial Value</div>
+    <script>
+        var latlng = L.latLng(0, 0);
+
+        var map = L.map('map', {
+            zoomControl: false,
+            minZoom: -0.8,
+            crs: L.CRS.Simple
+        });
+
+
+        function updateLocation(lat, lng) {
+            latlng.lat = lat;
+            latlng.lng = lng;
+            map.panTo(latlng);
+            userMarker.setLatLng(latlng);
+        }
+
+        function addPopup(x,y,content) {
+            var marker = L.marker([x, y]);
+            marker.addTo(map);
+            var popup = L.popup().setContent(content)
+            marker.bindPopup(popup);
+        }
+
+        function setupMap() {
+            var bounds = [[0, 0], [{mapHight},{mapWidth}]];
+            var image = L.imageOverlay('{apiUrl}/mobile/map', bounds).addTo(map);
+            map.fitBounds(bounds);
+        }
+        
+
+        setupMap();
+        var userMarker = L.marker([{defaultY}, {defaultX}]).addTo(map);
+        updateLocation({defaultY}, {defaultX});
+    </script>
+    <script src="{apiUrl}/mobile/javascript?fileName={jsName}"></script>
+</body>
+</html>

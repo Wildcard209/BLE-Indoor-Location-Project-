@@ -1,0 +1,91 @@
+version: "3"
+volumes:
+  npm-data:
+  npm-ssl:
+  npm-db:
+  universityapi-data:
+  universityapp-data:
+  university-db:
+
+networks:
+  frontend:
+  backend:
+
+services:
+  npm-app:
+    image: jc21/nginx-proxy-manager:latest
+    restart: always
+    ports:
+      - "80:80"
+      - "81:81"
+      - "443:443"
+    environment:
+      - DB_MYSQL_HOST=
+      - DB_MYSQL_PORT=3306
+      - DB_MYSQL_USER=
+      - DB_MYSQL_PASSWORD=
+      - DB_MYSQL_NAME=
+    volumes:
+      - npm-data:/data
+      - npm-ssl:/etc/letsencrypt
+    networks:
+      - frontend
+      - backend
+
+  npm-db:
+    image: jc21/mariadb-aria:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_DATABASE=npm
+      - MYSQL_USER=npm
+      - MYSQL_PASSWORD=
+    volumes:
+      - npm-db:/var/lib/mysql
+    networks:
+      - backend
+      
+  university-api:
+    restart: always
+    build:
+      context: .
+      dockerfile: WebAPI/Dockerfile
+      no_cache: true
+    container_name: university-api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - universityapi-data:/app
+    networks:
+      - frontend
+      - backend
+
+  university-app:
+    restart: always
+    build:
+      context: .
+      dockerfile: WebClient/Dockerfile
+      no_cache: true
+    container_name: university-app
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Production
+    volumes:
+      - universityapp-data:/app
+    networks:
+      - frontend
+      - backend
+
+  university-db:
+    image: mysql:latest
+    restart: always
+    environment:
+      - MYSQL_ROOT_PASSWORD=
+      - MYSQL_DATABASE=
+      - MYSQL_USER=
+      - MYSQL_PASSWORD=
+    volumes:
+      - university-db:/var/lib/mysql
+    ports:
+      - "3306:3306"
+    networks:
+      - backend

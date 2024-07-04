@@ -1,0 +1,496 @@
+﻿<div class="container-fluid">
+    <div class="row">
+        <div class="col-sm-4">
+            <div class="card h-100">
+                <div class="card-header">Add Elements</div>
+                <div class="card-body">
+                    <button class="btn btn-primary btn-block" @onclick="AddNewLine">Add New Line</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addParagraphModal">Add Paragraph</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addListModal">Add List</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addHeaderModal">Add Header</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addSpanModal">Add Span</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addAudioModal">Add Audio</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addImageModal">Add Image</button>
+                    <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addVideoModal">Add Video</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-3">
+            <div class="card h-100">
+                <div class="card-header">Live Popup View</div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    <div>@((MarkupString)renderedHtml)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-5">
+            <div class="card h-100">
+                <div class="card-header">Raw Html View</div>
+                <div class="card-body">
+                    <textarea @bind="TextAreaContent" class="form-control" rows="13"></textarea>
+                    <button @onclick="UpdateMiddleCard" class="btn btn-primary mt-2 btn-block">Update Live View</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row mt-3">
+        <div class="col-12">
+            <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#addUpdatePopupModal">Add/Update Popup</button>
+            <button class="btn btn-primary btn-block" data-bs-toggle="modal" data-bs-target="#loadSavedPopupModal">Load Saved Popup</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addHeaderModal" tabindex="-1" aria-labelledby="addHeaderModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addHeaderModalLabel">Add Header</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="headerSize" class="form-label">Select Header Size:</label>
+                        <select class="form-select" @bind="selectedHeaderSize">
+                            <option value="h1">H1</option>
+                            <option value="h2">H2</option>
+                            <option value="h3">H3</option>
+                            <option value="h4">H4</option>
+                            <option value="h5">H5</option>
+                            <option value="h6">H6</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="headerText" class="form-label">Enter Header Text:</label>
+                        <input type="text" class="form-control" @bind="headerText">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddHeader">Add Header</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addSpanModal" tabindex="-1" aria-labelledby="addSpanModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addSpanModalLabel">Add Span</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="spanText" class="form-label">Enter Span Text:</label>
+                        <input type="text" class="form-control" @bind="spanText">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddSpan">Add Span</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addAudioModal" tabindex="-1" aria-labelledby="addAudioModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addAudioModalLabel">Add Audio</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="audioSource" class="form-label">Select Audio Source:</label>
+                        <select class="form-select" @bind="selectedAudioSource">
+                            <option value="">Select...</option>
+                            @foreach (var audio in AudioList)
+                            {
+                                <option value="@audio">@audio</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="audioUrl" class="form-label">Or Enter Audio URL:</label>
+                        <input type="text" class="form-control" @bind="audioUrl">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddAudio">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addListModal" tabindex="-1" aria-labelledby="addListModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addListModalLabel">Add List</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="listItemText" class="form-label">Enter List Item Text:</label>
+                        <input type="text" class="form-control" @bind="listItemText">
+                        <button type="button" class="btn btn-primary mt-2" @onclick="AddListItem">Add Item</button>
+                    </div>
+                    @foreach (var item in listItems)
+                    {
+                        <div>@item</div>
+                    }
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddList">Add List</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addParagraphModal" tabindex="-1" aria-labelledby="addParagraphModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addParagraphModalLabel">Add Paragraph</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="paragraphText" class="form-label">Enter Paragraph Text:</label>
+                        <input type="text" class="form-control" @bind="paragraphText">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddParagraph">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="addImageModal" tabindex="-1" aria-labelledby="addImageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addImageModalLabel">Add Image</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="imageSource" class="form-label">Select Image Source:</label>
+                        <select class="form-select" @bind="selectedImageSource">
+                            <option value="">Select...</option>
+                            @foreach (var image in ImageList)
+                            {
+                                <option value="@image">@image</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="imageUrl" class="form-label">Or Enter Image URL:</label>
+                        <input type="text" class="form-control" @bind="imageUrl">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddImage">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addVideoModal" tabindex="-1" aria-labelledby="addVideoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addVideoModalLabel">Add Video</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="videoSource" class="form-label">Select Video Source:</label>
+                        <select class="form-select" @bind="selectedVideoSource">
+                            <option value="">Select...</option>
+                            @foreach (var video in VideoList)
+                            {
+                                <option value="@video">@video</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="videoUrl" class="form-label">Or Enter Video URL:</label>
+                        <input type="text" class="form-control" @bind="videoUrl">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddVideo">Add</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addUpdatePopupModal" tabindex="-1" aria-labelledby="addUpdatePopupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addUpdatePopupModalLabel">Add/Update Popup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="popupName" class="form-label">Select or Enter Popup Name:</label>
+                        <select class="form-select" @bind="selectedPopup">
+                            <option value="">Select...</option>
+                            @foreach (var popup in PopupList)
+                            {
+                                <option value="@popup">@popup</option>
+                            }
+                        </select>
+                        <input type="text" class="form-control mt-2" placeholder="Enter new popup name" @bind="newPopupName">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="AddOrUpdatePopup">Add/Update</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="loadSavedPopupModal" tabindex="-1" aria-labelledby="loadSavedPopupModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="loadSavedPopupModalLabel">Load Saved Popup</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="mb-3">
+                        <label for="savedPopup" class="form-label">Select Popup Name:</label>
+                        <select class="form-select" @bind="selectedSavedPopup">
+                            <option value="">Select...</option>
+                            @foreach (var popup in PopupList)
+                            {
+                                <option value="@popup">@popup</option>
+                            }
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal" @onclick="LoadSelectedPopup">Load</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@code {
+
+
+    private string renderedHtml = "";
+    private string selectedHeaderSize = "h1";
+    private string headerText = "";
+    private string spanText = "";
+    private string selectedAudioSource = "";
+    private string audioUrl = "";
+    private string paragraphText = "";
+    private List<string> listItems = new List<string>();
+    private string listItemText = "";
+    private string selectedImageSource = "";
+    private string imageUrl = "";
+    private string selectedVideoSource = "";
+    private string videoUrl = "";
+    private string selectedPopup = "";
+    private string newPopupName = "";
+    private string selectedSavedPopup = "";
+
+    [Parameter]
+    public string TextAreaContent { get; set; } = "";
+    [Parameter]
+    public string? HostName { get; set; }
+    [Parameter]
+    public List<string> AudioList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> VideoList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> ImageList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> PopupList { get; set; } = new List<string>();
+    [Parameter]
+    public Action<string?, string?>? OnButtonAddUpdatePopupAsync { get; set; }
+    [Parameter]
+    public Action<string?>? OnButtonGetPopupAsync { get; set; }
+
+    private void AddNewLine()
+    {
+        TextAreaContent += "<br>\n";
+        UpdateMiddleCard();
+    }
+    private void AddHeader()
+    {
+        TextAreaContent += $"<{selectedHeaderSize}>{headerText}</{selectedHeaderSize}>\n";
+        UpdateMiddleCard();
+    }
+
+    private void AddSpan()
+    {
+        TextAreaContent += $"<span>{spanText}</span>\n";
+        UpdateMiddleCard();
+    }
+
+    private void AddParagraph()
+    {
+        TextAreaContent += $"<p>{paragraphText}</p>\n";
+        UpdateMiddleCard();
+    }
+
+    private void AddAudio()
+    {
+        if (!string.IsNullOrEmpty(selectedAudioSource))
+        {
+            TextAreaContent += $"<audio controls style=\"max-width: 300px;\"><source src=\"{{apiUrl}}mobile/audio?fileName={selectedAudioSource}\" type=\"audio/mpeg\">Your browser does not support the audio tag.</audio> <br>\n";
+        }
+        else if (!string.IsNullOrEmpty(audioUrl))
+        {
+            TextAreaContent += $"<audio controls style=\"max-width: 300px;\"><source src=\"{audioUrl}\" type=\"audio/mpeg\">Your browser does not support the audio tag.</audio> <br>\n";
+        }
+        UpdateMiddleCard();
+    }
+
+    private void AddListItem()
+    {
+        if (!string.IsNullOrWhiteSpace(listItemText))
+        {
+            listItems.Add($"<li>{listItemText}</li>");
+            listItemText = "";
+        }
+    }
+
+    private void AddList()
+    {
+        TextAreaContent += "<ul>\n";
+        foreach (var item in listItems)
+        {
+            TextAreaContent += item + "\n";
+        }
+        TextAreaContent += "</ul>\n";
+        listItems.Clear();
+        UpdateMiddleCard();
+    }
+
+    private void AddImage()
+    {
+        if (!string.IsNullOrEmpty(selectedImageSource))
+        {
+            TextAreaContent += $"<img style=\"max-width: 300px;\" src=\"{{apiUrl}}mobile/image?fileName={selectedImageSource}\" alt=\"{selectedImageSource}\"> <br>\n";
+        }
+        else if (!string.IsNullOrEmpty(imageUrl))
+        {
+            TextAreaContent += $"<img style=\"max-width: 300px;\" src=\"{imageUrl}\" alt=\"{imageUrl}\"> <br>\n";
+        }
+        UpdateMiddleCard();
+    }
+
+    private void AddVideo()
+    {
+        if (!string.IsNullOrEmpty(selectedVideoSource))
+        {
+            TextAreaContent += $"<video controls style=\"max-width: 300px;\"><source src=\"{{apiUrl}}mobile/video?fileName={selectedVideoSource}\" type=\"video/mp4\">Your browser does not support the video tag.</video> <br>\n";
+        }
+        else if (!string.IsNullOrEmpty(videoUrl))
+        {
+            if (videoUrl.Contains("youtube.com"))
+            {
+                string videoId = videoUrl.Substring(videoUrl.IndexOf("v=") + 2);
+                string embedUrl = $"https://www.youtube.com/embed/{videoId}";
+                TextAreaContent += $"<iframe style=\"max-width: 300px;\" src=\"{embedUrl}\"></iframe> <br>\n";
+            }
+            else
+            {
+                // For non-YouTube links, keep the original video tag
+                TextAreaContent += $"<video controls style=\"max-width: 300px;\"><source src=\"{videoUrl}\" type=\"video/mp4\">Your browser does not support the video tag.</video> <br>\n";
+            }
+        }
+        UpdateMiddleCard();
+    }
+
+    private void UpdateMiddleCard()
+    {
+        string tempHtml = TextAreaContent;
+        tempHtml = tempHtml.Replace("{apiUrl}", $"{HostName}/");
+        renderedHtml = tempHtml;
+        ClearAllValues();
+    }
+
+    private void ClearAllValues()
+    {
+        selectedHeaderSize = "h1";
+        headerText = "";
+        spanText = "";
+        selectedAudioSource = "";
+        audioUrl = "";
+        paragraphText = "";
+        listItems.Clear();
+        listItemText = "";
+        selectedImageSource = "";
+        imageUrl = "";
+        selectedVideoSource = "";
+        videoUrl = "";
+        selectedPopup = "";
+        newPopupName = "";
+        selectedSavedPopup = "";
+    }
+
+    private void AddOrUpdatePopup()
+    {
+        if (OnButtonAddUpdatePopupAsync == null)
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(selectedPopup))
+        {
+            OnButtonAddUpdatePopupAsync.Invoke(selectedPopup, TextAreaContent);
+        }
+        else if (!string.IsNullOrEmpty(newPopupName))
+        {
+            OnButtonAddUpdatePopupAsync.Invoke(newPopupName, TextAreaContent);
+        }
+    }
+
+    private void LoadSelectedPopup()
+    {
+        if (OnButtonGetPopupAsync == null)
+        {
+            return;
+        }
+        if (!string.IsNullOrEmpty(selectedSavedPopup))
+        {
+            OnButtonGetPopupAsync.Invoke(selectedSavedPopup);
+        }
+    }
+
+}

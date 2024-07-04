@@ -1,0 +1,376 @@
+﻿@using global::Shared.Objects;
+@using Microsoft.AspNetCore.Components;
+@using System.Text.Json;
+@inject IJSRuntime JSRuntime
+@inject HttpClient HttpClient
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-3">
+                <div class="card-header">Map Options</div>
+                <div class="card-body">
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Image Size</label>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" readonly value="Height: @imageHeight px, Width: @imageWidth px" />
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Css</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" @bind="@selectedCss">
+                                <option value="">Select...</option>
+                                @foreach (var css in CssList)
+                                {
+                                    <option value="@css">@css</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Javascript</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" @bind="@selectedJs">
+                                <option value="">Select...</option>
+                                @foreach (var js in JsList)
+                                {
+                                    <option value="@js" @onchange="@( () => selectedJs = js )">@js</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <button class="btn btn-primary" @onclick="@( () => selectionState = ActiveImageSelectionState.Defualt )">Set Default Location</button>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" value="x:@defaultX y: @defaultY" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <button class="btn btn-primary" @onclick="@( () => selectionState = ActiveImageSelectionState.Lower )">Set Lower Bounds</button>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" value="x:@lowerX y: @lowerY" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <div class="col-sm-4">
+                            <button class="btn btn-primary" @onclick="@( () => selectionState = ActiveImageSelectionState.Higher )">Set Higher Bounds</button>
+                        </div>
+                        <div class="col-sm-8">
+                            <input type="text" class="form-control" value="x:@higherX y: @higherY" readonly />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">X Bound Size</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" @bind="@xBoundSize" />
+                        </div>
+                    </div>
+
+                    <div class="form-group row">
+                        <label class="col-sm-4 col-form-label">Y Bound Size</label>
+                        <div class="col-sm-8">
+                            <input type="number" class="form-control" @bind="@yBoundSize"/>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+            <div class="card mb-3" style="max-height: 300px; overflow-y: auto;">
+                <div class="card-header">Popup</div>
+                <div class="card-body">
+                    @foreach (PopupContent popupContent in popupContentList)
+                    {
+                        <div>
+                            <div class="form-group row">
+                                <div class="col-sm-4">
+                                    <button class="btn btn-primary" @onclick="@( () => { selectionState = ActiveImageSelectionState.Popup; selectedPopup = popupContent.ID; } )">Set Popup Location</button>
+                                </div>
+                                <div class="col-sm-8">
+                                    <input type="text" class="form-control" value="x:@popupContent.LocationX y: @popupContent.LocationY" readonly />
+                                </div>
+                            </div>
+                            <div class="form-group row">
+                                <label class="col-sm-4 col-form-label">Popup Content</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select" @onchange="@((e) => HandlePopupChange(e))">
+                                        <option value="">Select...</option>
+                                        @foreach (var popup in PopupList)
+                                        {
+                                            @if (popup == popupContent.ContentName)
+                                            {
+                                                <option value="@popup%@popupContent.ID" selected>@popup</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="@popup%@popupContent.ID">@popup</option>
+                                            }
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                            <button class="btn btn-danger mt-3" @onclick="@(() => RemovePopupContent(popupContent.ID))">Remove Popup</button>
+                            <hr>
+                        </div>
+                    }
+                    <button class="btn btn-success mt-3" @onclick="AddPopupContent">Add Popup</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6" id="imageContainer" style="overflow: auto; max-height: 600px;">
+            @if (MapList.Count > 0)
+            {
+                <img src="@HostName/Mobile/Map" id="image" @onclick="@(e => GetCoordinates(e))" @onload="GetImageSize" @ref="image" />
+            }
+            else
+            {
+                @* Placeholder image *@
+                <img src="https://placehold.co/1000x1000" id="image" @onclick="@(e => GetCoordinates(e))" @onload="GetImageSize" @ref="image" />
+            }
+            
+        </div>
+        @switch (selectionState)
+        {
+            case ActiveImageSelectionState.Defualt:
+                <p>Please click on image to select where to place the defualt location.</p>
+                break;
+            case ActiveImageSelectionState.Lower:
+                <p>Please click on image to select where to place the lower boundry.</p>
+                break;
+            case ActiveImageSelectionState.Higher:
+                <p>Please click on image to select where to place the higher boundry.</p>
+                break;
+            case ActiveImageSelectionState.Popup:
+            <p>Please click on image to select where to place the popup.</p>
+                break;
+        }
+        <button class="btn btn-success mt-3" @onclick="SaveMapDataAsync">Save Map Data</button>
+    </div>
+</div>
+
+<script>
+    window.getImageDimensions = function (element) {
+        var rect = element.getBoundingClientRect();
+        return {
+            width: rect.width || element.offsetWidth,
+            height: rect.height || element.offsetHeight
+        };
+    };
+
+</script>
+
+
+@code {
+    [Parameter]
+    public List<string> CssList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> JsList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> PopupList { get; set; } = new List<string>();
+    [Parameter]
+    public List<string> MapList { get; set; } = new List<string>();
+    [Parameter]
+    public string? HostName { get; set; }
+
+    private List<PopupContent> popupContentList = new List<PopupContent>();
+    private string selectedCss = "";
+    private string selectedJs = "";
+
+    private int imageHeight = 0;
+    private int imageWidth = 0;
+    private int defaultX = 0;
+    private int defaultY = 0;
+    private int lowerX = 0;
+    private int lowerY = 0;
+    private int higherX = 0;
+    private int higherY = 0;
+    private int xBoundSize = 0;
+    private int yBoundSize = 0;
+    private ActiveImageSelectionState selectionState = ActiveImageSelectionState.None;
+    private Guid? selectedPopup;
+    private ElementReference? image;
+
+    protected override async void OnInitialized()
+    {
+        //Get map data
+        HttpResponseMessage mapDataHttp = await HttpClient.GetAsync($"{HostName}/Mobile/MapData");
+        GetPostMapData? mapData = null;
+        if (mapDataHttp.IsSuccessStatusCode)
+        {
+            mapData = await mapDataHttp.Content.ReadFromJsonAsync<GetPostMapData>();
+        }
+
+        if(mapData == null)
+        {
+            popupContentList.Add(new PopupContent
+                {
+                    ID = Guid.NewGuid(),
+                    ContentName = "",
+                    LocationX = 0,
+                    LocationY = 0
+                });
+            selectedPopup = popupContentList[0].ID;
+        }
+        else
+        {
+            popupContentList.AddRange(mapData.PopupContentList);
+            selectedCss = mapData.SelectedCss;
+            selectedJs = mapData.SelectedJs;
+            defaultX = mapData.DefaultX;
+            defaultY = mapData.DefaultY;
+            lowerX = mapData.LowerX;
+            lowerY = mapData.LowerY;
+            higherX = mapData.HigherX;
+            higherY = mapData.HigherY;
+            xBoundSize = mapData.BoundX;
+            yBoundSize = mapData.BoundY;
+        }
+
+        StateHasChanged();
+    }
+
+    private void HandlePopupChange(ChangeEventArgs e)
+    {
+        string? eventValue = e?.Value?.ToString();
+
+        if(eventValue == null)
+        {
+            return;    
+        }
+
+        string[] splitValues = eventValue.Split('%');
+        string popupContent = splitValues[0];
+        string id = splitValues[1];
+
+        PopupContent? popup = popupContentList.FirstOrDefault(p => p.ID.ToString() == id);
+
+        if(popup == null)
+        {
+            return;
+        }
+
+        int indexPopup = popupContentList.IndexOf(popup);
+
+        popupContentList[indexPopup].ContentName = popupContent;
+    }
+
+    private async Task GetImageSize()
+    {
+        Dictionary<string, int>  dimensions = await JSRuntime.InvokeAsync<Dictionary<string, int>>("getImageDimensions", image);
+
+        if (dimensions.ContainsKey("width") && dimensions.ContainsKey("height"))
+        {
+            imageWidth = dimensions["width"];
+            imageHeight = dimensions["height"];
+        }
+        StateHasChanged();
+    }
+
+    private void AddPopupContent()
+    {
+        popupContentList.Add(new PopupContent
+            {
+                ID = Guid.NewGuid(),
+                ContentName = "",
+                LocationX = 0,
+                LocationY = 0
+            });
+        StateHasChanged();
+    }
+
+    private void RemovePopupContent(Guid? Id)
+    {
+        PopupContent? removePopup = popupContentList.FirstOrDefault(p => p.ID == Id);
+
+        if (removePopup == null)
+        {
+            return;
+        }
+
+        popupContentList.Remove(removePopup);
+        StateHasChanged();
+    }
+
+    async Task GetCoordinates(MouseEventArgs e)
+    {
+        double containerLeft = await JSRuntime.InvokeAsync<double>("eval", "document.getElementById('image').getBoundingClientRect().left");
+        double containerBottom = await JSRuntime.InvokeAsync<double>("eval", "document.getElementById('image').getBoundingClientRect().bottom");
+
+        int X = (int)(e.ClientX - containerLeft);
+        int Y = (int)(containerBottom - e.ClientY);
+
+        switch(selectionState)
+        {
+            case ActiveImageSelectionState.None:
+                break;
+            case ActiveImageSelectionState.Defualt:
+                defaultX = X;
+                defaultY = Y;
+                break;
+            case ActiveImageSelectionState.Lower:
+                lowerX = X;
+                lowerY = Y;
+                break;
+            case ActiveImageSelectionState.Higher:
+                higherX = X;
+                higherY = Y;
+                break;
+            case ActiveImageSelectionState.Popup:
+                if(selectedPopup == null)
+                {
+                    break;
+                }
+                PopupContent? popup = popupContentList.FirstOrDefault(p => p.ID == selectedPopup);
+                if(popup == null)
+                {
+                    break;
+                }
+                popup.LocationX = X;
+                popup.LocationY = Y;
+                break;
+        }
+
+        selectionState = ActiveImageSelectionState.None;
+
+        StateHasChanged();
+    }
+
+    private async Task SaveMapDataAsync()
+    {
+        string apiUrl = $"{HostName}/Web/MainData";
+
+        GetPostMapData mapData = new GetPostMapData();
+        mapData.PopupContentList = popupContentList;
+        mapData.SelectedJs = selectedJs;
+        mapData.SelectedCss = selectedCss;
+        mapData.DefaultX = defaultX;
+        mapData.DefaultY = defaultY;
+        mapData.HigherX = higherX;
+        mapData.HigherY = higherY;
+        mapData.LowerX = lowerX;
+        mapData.LowerY = lowerY;
+        mapData.ImageHeight = imageHeight;
+        mapData.ImageWidth = imageWidth;
+        mapData.BoundX = xBoundSize;
+        mapData.BoundY = yBoundSize;
+
+
+        HttpResponseMessage response = await HttpClient.PatchAsJsonAsync<GetPostMapData>(apiUrl, mapData);
+    }
+
+    enum ActiveImageSelectionState
+    {
+        None,
+        Defualt,
+        Lower,
+        Higher,
+        Popup
+    }
+}

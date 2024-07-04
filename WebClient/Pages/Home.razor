@@ -1,0 +1,435 @@
+﻿@page "/home"
+@using Microsoft.AspNetCore.Components.Authorization
+@using System.Net.Http
+@using System.Text.Json
+@using System.Threading.Tasks
+@using System.Security.Claims;
+@using System.Net.Http.Headers
+@using WebClient.Components
+@using WebClient.Converter;
+
+@inject AuthenticationStateProvider AuthenticationStateProvider;
+@inject NavigationManager NavigationManager;
+@inject HttpClient HttpClient
+@inject IConfiguration Configuration
+@inject IJSRuntime JSRuntime
+
+<LoaderComponent IsLoading="@isLoading" />
+
+<div class="container">
+    <div class="card mt-3">
+        <div class="card-header">
+            <ul class="nav nav-tabs card-header-tabs">
+                <li class="nav-item">
+                    <a class="@((activeOption == 1 ? "nav-link active" : "nav-link"))" role="button" @onclick="async () => {OptionClicked(1); await GetDataAsync();}">Map Viewer</a>
+                </li>
+                <li class="nav-item">
+                    <a class="@((activeOption == 2 ? "nav-link active" : "nav-link"))" role="button" @onclick="async () => {OptionClicked(2); await GetDataAsync();}">File Explore</a>
+                </li>
+                <li class="nav-item">
+                    <a class="@((activeOption == 3 ? "nav-link active" : "nav-link"))" role="button" @onclick="async () => {OptionClicked(3); await GetDataAsync();}">Popup Builder</a>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div id="content">
+                @switch (activeOption)
+                {
+                    case 1:
+                        <MapManagerComponent CssList="@cssList" JsList="@jsList" PopupList="@popupList" MapList="@mapList" HostName="@apiHostName"></MapManagerComponent>
+                        break;
+                    case 2:
+                        <FileExploreComponent HtmlList="@htmlList" CssList="@cssList" JsList="@jsList" ImageList="@imageList" MapList="@mapList" AudioList="@audioList" VideoList="@videoList" HostName="@apiHostName" Message="@message" 
+                            OnButtonUploadMapFileAsync="UploadMapFileAsync" OnButtonUploadAudioFileAsync="UploadAudioAsync" OnButtonUploadCssFileAsync="UploadCssFileAsync" OnButtonUploadHtmlFileAsync="UploadHtmlFileAsync" OnButtonUploadJavascriptFileAsync="UploadJavascriptAsync" OnButtonUploadImageFileAsync="UploadImageFileAsync" OnButtonUploadVideoFileAsync="UploadVideoAsync"
+                                              OnButtondDeleteHtmlFilesAsync="DeleteHtmlAsync" OnButtondDeleteImageFilesAsync="DeleteImageAsync" OnButtonDeleteCssFilesAsync="DeleteCssAsync" OnButtonDeleteJavascriptFilesAsync="DeleteJavascriptAsync" OnButtonDeleteVideoFilesAsync="DeleteVideoAsync" OnButtonDeleteAudioFilesAsync="DeleteAudioAsync"></FileExploreComponent>
+                        break;
+                    case 3:
+                        <p><PopupManagerComponent AudioList="@audioList" ImageList="@imageList" VideoList="@videoList" PopupList="@popupList" HostName="@apiHostName" TextAreaContent="@htmlContent" OnButtonAddUpdatePopupAsync="AddUpdatePopupAsync" OnButtonGetPopupAsync="GetPopupAsync"></PopupManagerComponent></p>
+                        break;
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    window.blazorExtensions = {
+        getCookie: function (name) {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.startsWith(name + '=')) {
+                    return cookie.substring(name.length + 1);
+                }
+            }
+            return null;
+        }
+    };
+
+    function hideModal(buttonID) {
+        var cancelButton = document.getElementById(buttonID);
+        cancelButton.click();
+    }
+
+</script>
+@code {
+    bool isLoading { get; set; }
+    bool isAuthenticated;
+    bool isAuthorized;
+    int activeOption = 1;
+    List<string> htmlList = new List<string>();
+    List<string> cssList = new List<string>();
+    List<string> jsList = new List<string>();
+    List<string> mapList = new List<string>();
+    List<string> imageList = new List<string>();
+    List<string> videoList = new List<string>();
+    List<string> audioList = new List<string>();
+    List<string> popupList = new List<string>();
+    string? apiHostName;
+    string? message;
+    string? htmlContent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CheckAuthenticationAsync();
+    }
+
+    private async Task CheckAuthenticationAsync()
+    {
+        var authenticatedState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+        var user = authenticatedState.User;
+        if (user.Identity == null || !user.Identity.IsAuthenticated || !user.IsInRole("User") && !user.IsInRole("Admin"))
+        {
+            NavigationManager.NavigateTo("");
+        }
+        else
+        {
+            isAuthenticated = true;
+            isAuthorized = true;
+            apiHostName = Configuration["ApiHostName"];
+            await GetDataAsync();
+        }
+    }
+
+    private async Task GetDataAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            // Reset lists for view
+            ResetLists();
+
+            if (apiHostName == null)
+                return;
+
+            string apiUrl = $"{apiHostName}/Web/AvailableFiles";
+            HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
+
+            if (response.IsSuccessStatusCode)
+            {
+                string jsonResponse = await response.Content.ReadAsStringAsync();
+                var data = JsonSerializer.Deserialize<List<Tuple<string?, string?>>>(jsonResponse, new JsonSerializerOptions { PropertyNameCaseInsensitive = true, Converters = { new StringTupleJsonConverter() } });
+
+                if (data != null)
+                {
+                    PopulateLists(data);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            message = $"An error occurred: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void ResetLists()
+    {
+        htmlList.Clear();
+        cssList.Clear();
+        jsList.Clear();
+        mapList.Clear();
+        imageList.Clear();
+        videoList.Clear();
+        audioList.Clear();
+        popupList.Clear();
+    }
+
+    private void PopulateLists(List<Tuple<string?, string?>> data)
+    {
+        foreach (var (item1, item2) in data)
+        {
+            if (item2 != null)
+            {
+                switch (item1)
+                {
+                    case "html":
+                        htmlList.Add(item2);
+                        break;
+                    case "css":
+                        cssList.Add(item2);
+                        break;
+                    case "js":
+                        jsList.Add(item2);
+                        break;
+                    case "map":
+                        mapList.Add(item2);
+                        break;
+                    case "image":
+                        imageList.Add(item2);
+                        break;
+                    case "video":
+                        videoList.Add(item2);
+                        break;
+                    case "audio":
+                        audioList.Add(item2);
+                        break;
+                    case "popup":
+                        popupList.Add(item2);
+                        break;
+                }
+            }
+        }
+    }
+
+    private async Task UploadFileAsync(IBrowserFile? selectedFile, string fileName, string fileType, string contentType, bool isPatch = false)
+    {
+        if (selectedFile == null)
+        {
+            message = "Please select a file";
+            StateHasChanged();
+            return;
+        }
+
+        if (selectedFile.ContentType != contentType)
+        {
+            message = $"Please select a {fileType} file";
+            StateHasChanged();
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        const int chunkSize = 1024 * 1024;
+        try
+        {
+            using (var stream = selectedFile.OpenReadStream(long.MaxValue))
+            {
+                var buffer = new byte[chunkSize];
+                int bytesRead;
+                int totalBytesRead = 0;
+                bool isFirstChunck = true;
+
+                while ((bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                {
+                    totalBytesRead += bytesRead;
+
+                    var chunk = new byte[bytesRead];
+                    Array.Copy(buffer, chunk, bytesRead);
+
+                    await UploadChunkAsync(chunk, fileName, fileType, selectedFile.Name, isPatch, isFirstChunck,totalBytesRead == selectedFile.Size);
+                    isFirstChunck = false;
+                }
+            }
+
+            message = "";
+            StateHasChanged();
+            await JSRuntime.InvokeVoidAsync("hideModal", $"upload{fileType}ModalClose");
+            OptionClicked(2);
+            await GetDataAsync();
+
+
+        }
+        catch (Exception ex)
+        {
+            message = $"An error occurred: {ex.Message}";
+            StateHasChanged();
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task UploadChunkAsync(byte[] chunk, string fileName, string fileType, string selectedFileName,bool isPatch,bool isFirstChunck, bool isLastChunk)
+    {
+        string apiUrl = isPatch ? $"{apiHostName}/Web/{fileType}?isFirstChunk={isFirstChunck}" : $"{apiHostName}/Web/{fileType}?fileName={fileName}&isFirstChunk={isFirstChunck}";
+
+        // Create multipart content for the chunk
+        var fileContent = new ByteArrayContent(chunk);
+        fileContent.Headers.Add("Content-Type", "multipart/form-data");
+
+        var formData = new MultipartFormDataContent();
+        formData.Add(fileContent, "file", selectedFileName);
+
+        // Send the chunk to the server
+        HttpResponseMessage response;
+        if (isPatch)
+        {
+            response = await HttpClient.PatchAsync(apiUrl, formData);
+        }
+        else
+        {
+            response = await HttpClient.PostAsync(apiUrl, formData);
+        }
+
+        if(response.IsSuccessStatusCode) { }
+        else
+        {
+            message = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+            StateHasChanged();
+        }
+    }
+
+    private async void UploadMapFileAsync(IBrowserFile? selectedFile)
+    {
+        await UploadFileAsync(selectedFile, "", "Map", "image/png", true);
+    }
+
+    private async void UploadImageFileAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Image", "image/png");
+    }
+
+    private async void UploadHtmlFileAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Html", "text/html");
+    }
+
+    private async void UploadCssFileAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Css", "text/css");
+    }
+
+    private async void UploadJavascriptAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Javascript", "application/x-javascript");
+    }
+
+    private async void UploadVideoAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Video", "video/mp4");
+    }
+
+    private async void UploadAudioAsync(IBrowserFile? selectedFile, string fileName)
+    {
+        await UploadFileAsync(selectedFile, fileName, "Audio", "audio/mpeg");
+    }
+
+    private async void DeleteImageAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Image");
+    }
+
+    private async void DeleteHtmlAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Html");
+    }
+
+    private async void DeleteCssAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Css");
+    }
+
+    private async void DeleteJavascriptAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Javascript");
+    }
+
+    private async void DeleteAudioAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Audio");
+    }
+
+    private async void DeleteVideoAsync(List<string?> filesToRemove)
+    {
+        await DeleteFilesAsync(filesToRemove, "Video");
+    }
+
+    private async void GetPopupAsync(string? fileName)
+    {
+        if (fileName == null)
+        {
+            message = "Please select a file";
+            StateHasChanged();
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        string apiUrl = $"{apiHostName}/Web/Popup?fileName={fileName}";
+        HttpResponseMessage response = await HttpClient.GetAsync(apiUrl);
+
+        if (response.IsSuccessStatusCode)
+        {
+            htmlContent = await response.Content.ReadAsStringAsync();
+            StateHasChanged();
+        }
+        else
+        {
+            message = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+            StateHasChanged();
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async void AddUpdatePopupAsync(string? fileName, string? content)
+    {
+        if (fileName == null)
+        {
+            message = "Please select a file";
+            StateHasChanged();
+            return;
+        }
+
+        isLoading = true;
+        StateHasChanged();
+
+        string apiUrl = $"{apiHostName}/Web/Popup?fileName={fileName}&content={content}";
+        HttpResponseMessage response = await HttpClient.PostAsync(apiUrl,null);
+
+        if (response.IsSuccessStatusCode) { }
+        else
+        {
+            message = $"Error: {response.StatusCode} - {response.ReasonPhrase}";
+            StateHasChanged();
+        }
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task DeleteFilesAsync(List<string?> filesToRemove, string fileType)
+    {
+        if(filesToRemove.Count == 0)
+        {
+            return;
+        }
+        isLoading = true;
+        StateHasChanged();
+
+        string apiUrl = $"{apiHostName}/Web/{fileType}?fileNames={string.Join("&fileNames=", filesToRemove)}";
+
+        await HttpClient.DeleteAsync(apiUrl);
+
+        OptionClicked(2);
+        await GetDataAsync();
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private void OptionClicked(int option)
+    {
+        activeOption = option;
+    }
+}
